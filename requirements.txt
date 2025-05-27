@@ -1,3 +1,13 @@
-pandas 
-numpy
--e .
+numpy 
+pandas
+python-dotenv
+mysql-connector-python
+pymysql
+scikit-learn
+# -e .
+seaborn
+catboost
+xgboost
+mlflow
+streamlit
+joblib
