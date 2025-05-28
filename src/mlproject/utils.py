@@ -34,7 +34,6 @@ def read_sql_data():
         )
         logging.info(f"Connection Established: {mydb}")
         df = pd.read_sql_query('Select * from heart' , mydb)
-        print(df.head())
         return df
         
     

@@ -58,8 +58,8 @@ class DataIngestion:
     
     def initiate_data_ingestion(self):
         try:
-            df = read_sql_data()
-            # df = pd.read_csv(os.path.join('notebook\data' ,'raw.csv'))
+            # df = read_sql_data()
+            df = pd.read_csv(os.path.join('notebook/data' ,'cleaned_data.csv'))
             ###reading the data from mysql
             logging.info("reading completed mysql database")    
             
