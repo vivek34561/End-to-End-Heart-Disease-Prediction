@@ -33,20 +33,21 @@ class ModelTrainer:
 
     def eval_metrics(self, actual, pred):
         acc = accuracy_score(actual, pred)
-        prec = precision_score(actual, pred, pos_label='Yes', zero_division=0)
-        rec = recall_score(actual, pred, pos_label='Yes', zero_division=0)
-        f1 = f1_score(actual, pred, pos_label='Yes', zero_division=0)
+        prec = precision_score(actual, pred)
+        rec = recall_score(actual, pred)
+        f1 = f1_score(actual, pred)
         return acc, prec, rec, f1
 
     def initiate_model_trainer(self, train_array, test_array):
         try:
             logging.info("Splitting training and testing input data")
-            X_train, y_train, X_test, y_test = (
-                train_array[:, :-1],
-                train_array[:, -1],
-                test_array[:, :-1],
-                test_array[:, -1]
-            )
+            X_train = train_array[:, :-1]
+            print("Xtrain" , X_train)
+            y_train = train_array[:, -1]
+            print("Ytrain" , y_train)
+            X_test = test_array[:, :-1]
+            y_test = test_array[:, -1]
+
 
             models = {
                 "Random Forest": RandomForestClassifier(),
@@ -61,32 +62,32 @@ class ModelTrainer:
 
             params = {
                 "Decision Tree": {
-                    'criterion': ['gini', 'entropy']
+                    # 'criterion': ['gini', 'entropy']
                 },
                 "Random Forest": {
-                    'n_estimators': [10, 40 , 45 , 50, 55 , 60 , 70 , 80 , 90 ,100],
-                    'max_depth' : [2, 5, 7 , 10, 20],
-                    'criterion' : ['gini', 'entropy']
+                    # 'n_estimators': [10, 40 , 45 , 50],
+                    # 'max_depth' : [2, 10, 20],
+                    # 'criterion' : ['gini', 'entropy']
                     
                 },
                 "Gradient Boosting": {
-                    'n_estimators': [10, 50, 100 , 300],
-                    'learning_rate': [0.01, 0.1, 0.2]
+                    # 'n_estimators': [10, 50, 100 , 300],
+                    # 'learning_rate': [0.01, 0.1, 0.2]
                 },
                 "XGBoost": {
-                    'learning_rate': [0.01, 0.1, 0.2],
-                    'n_estimators': [10, 50, 250]
+                    # 'learning_rate': [0.01, 0.1, 0.2],
+                    # 'n_estimators': [10, 50, 250]
                 },
                 "CatBoost": {
-                    'learning_rate': [0.01, 0.1, 0.2],
-                    'iterations': [10, 50, 200]
+                    # 'learning_rate': [0.01, 0.1, 0.2],
+                    # 'iterations': [10, 50, 200]
                 },
                 "AdaBoost": {
-                    'n_estimators': [10, 50, 100 , 250],
-                    'learning_rate': [0.01, 0.1, 0.2]
+                    # 'n_estimators': [10, 50, 100 , 250],
+                    # 'learning_rate': [0.01, 0.1, 0.2]
                 },
                 "KNeighbors": {
-                    'n_neighbors': [3, 5, 7 , 9]
+                    # 'n_neighbors': [3, 5, 7 , 9]
                 },
                 "Logistic Regression": {}
             }

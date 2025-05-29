@@ -65,10 +65,7 @@ def evaluate_model(X_train, y_train, X_test, y_test, models, param, classificati
         report = {}
 
         # Encode labels if classification and labels are not numeric
-        if classification and y_train.dtype == 'object':
-            encoder = LabelEncoder()
-            y_train = encoder.fit_transform(y_train)
-            y_test = encoder.transform(y_test)
+       
 
         for i in range(len(models)):
             model_name = list(models.keys())[i]

@@ -8,6 +8,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from src.mlproject.exception import CustomException
 from src.mlproject.logger import logging
+from sklearn.preprocessing import LabelEncoder
+
 import os
 from src.mlproject.utils import save_object
 
@@ -27,9 +29,9 @@ class DataTransformation:
             target_column = 'Heart Disease Status'
             if target_column in df.columns:
                 df = df.drop(columns=[target_column])
-
-            categorical_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
-            numerical_columns = df.select_dtypes(include=['number']).columns.tolist()
+            
+            categorical_columns = ['Gender' , 'Exercise Habits' , 'Smoking' , 'Family Heart Disease' , 'Diabetes' , 'High Blood Pressure' , 'Low HDL Cholesterol' ,'High LDL Cholesterol' , 'Alcohol Consumption' , 'Stress Level' , 'Sugar Consumption']
+            numerical_columns = ['Age' , 'Blood Pressure' , 'Cholesterol Level' , 'BMI' , 'Sleep Hours' , 'Triglyceride Level' , 'Fasting Blood Sugar' , 'CRP Level' , 'Homocysteine Level']
 
             logging.info(f"Categorical Columns: {categorical_columns}")
             logging.info(f"Numerical Columns: {numerical_columns}")
@@ -49,7 +51,7 @@ class DataTransformation:
                 ("num_pipeline", num_pipeline, numerical_columns),
                 ("cat_pipeline", cat_pipeline, categorical_columns)
             ])
-
+            
             return preprocessor
 
         except Exception as e:
@@ -59,12 +61,20 @@ class DataTransformation:
         try:
             train_df = pd.read_csv(train_path)
             test_df = pd.read_csv(test_path)
-
+            
             logging.info("Reading the train and test files")
-
+            
             target_column = 'Heart Disease Status'
             preprocessing_obj = self.get_data_transformer_object(train_df)
 
+            # Initialize the LabelEncoder
+            label_encoder = LabelEncoder()
+
+            # Fit and transform the target column
+            train_df['Heart Disease Status'] = label_encoder.fit_transform(train_df['Heart Disease Status'])
+            test_df['Heart Disease Status'] = label_encoder.transform(test_df['Heart Disease Status'])
+            
+            train_df.info()
             input_features_train_df = train_df.drop(columns=[target_column])
             target_feature_train_df = train_df[target_column]
 
@@ -75,11 +85,14 @@ class DataTransformation:
 
             input_feature_train_arr = preprocessing_obj.fit_transform(input_features_train_df)
             input_feature_test_arr = preprocessing_obj.transform(input_features_test_df)
-
+            
+            
             train_arr = np.concatenate(
                 [input_feature_train_arr, target_feature_train_df.to_numpy().reshape(-1, 1)],
                 axis=1
             )
+            
+            
             test_arr = np.concatenate(
                 [input_feature_test_arr, target_feature_test_df.to_numpy().reshape(-1, 1)],
                 axis=1
