@@ -59,7 +59,7 @@ class DataIngestion:
     def initiate_data_ingestion(self):
         try:
             # df = read_sql_data()
-            df = pd.read_csv(os.path.join('notebook/data' ,'cleaned_data.csv'))
+            df = pd.read_csv(r'C:\Users\vivek gupta\Desktop\Heart_disease_prediction\notebook\data\cleaned_data.csv')
             ###reading the data from mysql
             logging.info("reading completed mysql database")    
             
