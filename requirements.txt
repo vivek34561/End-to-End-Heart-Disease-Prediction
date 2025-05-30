@@ -13,7 +13,7 @@ streamlit
 joblib
 langchain
 langchain_community
-openai==0.28
+openai
 python-dotenv
 xhtml2pdf
 Pillow
