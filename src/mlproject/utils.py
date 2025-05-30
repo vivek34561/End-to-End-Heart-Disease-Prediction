@@ -57,7 +57,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from src.mlproject.exception import CustomException
 import sys
 
-from sklearn.metrics import f1_score, r2_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
 from sklearn.preprocessing import LabelEncoder
 
 def evaluate_model(X_train, y_train, X_test, y_test, models, param, classification=False):
@@ -74,18 +75,23 @@ def evaluate_model(X_train, y_train, X_test, y_test, models, param, classificati
 
             gs = GridSearchCV(model, para, cv=3, scoring='accuracy')
             gs.fit(X_train, y_train)
+            
 
             model.set_params(**gs.best_params_)
             model.fit(X_train, y_train)
-
+            
+            y_train_pred = model.predict(X_train)
             y_test_pred = model.predict(X_test)
 
             if classification:
-                score = f1_score(y_test, y_test_pred, average='weighted')  # supports multiclass
+                f1score = f1_score(y_test, y_test_pred) 
+                accuracy = accuracy_score(y_test, y_test_pred)
+                precision = precision_score(y_test, y_test_pred)
+                recall = recall_score(y_test, y_test_pred)
             else:
                 score = r2_score(y_test, y_test_pred)
 
-            report[model_name] = score
+            report[model_name] = accuracy
 
         return report
 

@@ -74,7 +74,8 @@ class DataTransformation:
             train_df['Heart Disease Status'] = label_encoder.fit_transform(train_df['Heart Disease Status'])
             test_df['Heart Disease Status'] = label_encoder.transform(test_df['Heart Disease Status'])
             
-            train_df.info()
+            
+            
             input_features_train_df = train_df.drop(columns=[target_column])
             target_feature_train_df = train_df[target_column]
 
@@ -82,7 +83,7 @@ class DataTransformation:
             target_feature_test_df = test_df[target_column]
 
             logging.info("Applying preprocessing on training and test data")
-
+            
             input_feature_train_arr = preprocessing_obj.fit_transform(input_features_train_df)
             input_feature_test_arr = preprocessing_obj.transform(input_features_test_df)
             
