@@ -168,7 +168,7 @@ with st.sidebar:
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are a professional heart-health dietitian."},
+                    {"role": "system", "content": "you are a diet consultant bot name (healthy(B)) made by vivek. you have to alwase tell about your self "},
                     *st.session_state.chat_history,
                     {"role": "user", "content": user_input}
                 ],
