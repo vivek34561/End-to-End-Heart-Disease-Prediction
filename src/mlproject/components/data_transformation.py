@@ -26,13 +26,12 @@ class DataTransformation:
         This function creates preprocessing pipelines for numerical and categorical data.
         """
         try:
-            target_column = 'Heart Disease Status'
+            target_column = 'target'
             if target_column in df.columns:
                 df = df.drop(columns=[target_column])
             
-            categorical_columns = ['Gender' , 'Exercise Habits' , 'Smoking' , 'Family Heart Disease' , 'Diabetes' , 'High Blood Pressure' , 'Low HDL Cholesterol' ,'High LDL Cholesterol' , 'Alcohol Consumption' , 'Stress Level' , 'Sugar Consumption']
-            numerical_columns = ['Age' , 'Blood Pressure' , 'Cholesterol Level' , 'BMI' , 'Sleep Hours' , 'Triglyceride Level' , 'Fasting Blood Sugar' , 'CRP Level' , 'Homocysteine Level']
-
+            categorical_columns = []
+            numerical_columns = ['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal']
             logging.info(f"Categorical Columns: {categorical_columns}")
             logging.info(f"Numerical Columns: {numerical_columns}")
 
@@ -64,15 +63,9 @@ class DataTransformation:
             
             logging.info("Reading the train and test files")
             
-            target_column = 'Heart Disease Status'
+            target_column = 'target'
             preprocessing_obj = self.get_data_transformer_object(train_df)
 
-            # Initialize the LabelEncoder
-            label_encoder = LabelEncoder()
-
-            # Fit and transform the target column
-            train_df['Heart Disease Status'] = label_encoder.fit_transform(train_df['Heart Disease Status'])
-            test_df['Heart Disease Status'] = label_encoder.transform(test_df['Heart Disease Status'])
             
             
             

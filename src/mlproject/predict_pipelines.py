@@ -16,5 +16,5 @@ class PredictPipeline:
     
         transformed_data = self.preprocessor.transform(df)
         prediction = self.model.predict(transformed_data)[0]
-        print(f"Predicted Heart Disease Status: {prediction}")
+    
         return prediction

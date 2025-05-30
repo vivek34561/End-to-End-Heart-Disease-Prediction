@@ -11,3 +11,10 @@ xgboost
 mlflow
 streamlit
 joblib
+langchain
+langchain_community
+openai==0.28
+python-dotenv
+xhtml2pdf
+Pillow
+fpdf

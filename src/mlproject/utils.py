@@ -61,38 +61,28 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 from sklearn.preprocessing import LabelEncoder
 
-def evaluate_model(X_train, y_train, X_test, y_test, models, param, classification=False):
+def evaluate_model(X_train, y_train, X_test, y_test, models, param):
     try:
         report = {}
 
         # Encode labels if classification and labels are not numeric
        
 
-        for i in range(len(models)):
-            model_name = list(models.keys())[i]
-            model = models[model_name]
-            para = param.get(model_name, {})
-
-            gs = GridSearchCV(model, para, cv=3, scoring='accuracy')
-            gs.fit(X_train, y_train)
+        for i in range(len(list(models))):
+           model = list(models.values())[i]
+           para = param[list(models.keys())[i]]
+           
+           gs = GridSearchCV(model, para, cv=3)
+           gs.fit(X_train, y_train)
+           
+           model.set_params(**gs.best_params_)
+           model.fit(X_train, y_train)
+           
             
-
-            model.set_params(**gs.best_params_)
-            model.fit(X_train, y_train)
-            
-            y_train_pred = model.predict(X_train)
-            y_test_pred = model.predict(X_test)
-
-            if classification:
-                f1score = f1_score(y_test, y_test_pred) 
-                accuracy = accuracy_score(y_test, y_test_pred)
-                precision = precision_score(y_test, y_test_pred)
-                recall = recall_score(y_test, y_test_pred)
-            else:
-                score = r2_score(y_test, y_test_pred)
-
-            report[model_name] = accuracy
-
+           y_train_pred = model.predict(X_train)
+           y_test_pred = model.predict(X_test)
+           score = accuracy_score(y_test, y_test_pred) 
+           report[list(models.keys())[i]] = score 
         return report
 
     except Exception as e:
