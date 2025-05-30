@@ -5,6 +5,8 @@ from openai import OpenAI
 from PIL import Image
 from fpdf import FPDF
 import io
+import streamlit.components.v1 as components
+
 
 from src.mlproject.predict_pipelines import PredictPipeline
 
@@ -13,19 +15,9 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 st.set_page_config(page_title="🫀 Heart Risk & Diet AI", layout="wide")
-img = Image.open(r"C:\Users\vivek gupta\Desktop\Heart_disease_prediction\GettyImages-1155240409.jpg")
-
-# Resize to specific width and height (e.g., 200x150)
-img = img.resize((1300, 150))
-
 st.title("🫀 Heart Disease Predictor & Diet Assistant")
-st.image(img)
 
-# # Optional infographic
-# st.image(r"C:\Users\vivek gupta\Desktop\Heart_disease_prediction\GettyImages-1155240409.jpg", width=100)
-
-# Tabs for layout
-tab1, tab2 = st.tabs(["🔍 Risk & Diet Plan", "💬 Diet Chatbot"])
+tab1 = st.container()
 
 # ------------------------- TAB 1 -------------------------
 with tab1:
@@ -117,7 +109,7 @@ with tab1:
                     {"role": "system", "content": "You are a certified medical dietitian."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=400  # increased to ensure detailed output
+                max_tokens=40  # increased to ensure detailed output
             )
             diet_text = response.choices[0].message.content
 
@@ -162,23 +154,34 @@ with tab1:
 
 
 # ------------------------- TAB 2 -------------------------
-with tab2:
-    st.subheader("💬 Ask Your Diet Question")
-    user_query = st.text_input("❓ Your diet question")
+# ------------------------- SIDEBAR CHATBOT -------------------------
+with st.sidebar:
+    st.header("💬 Diet Chatbot")
 
-    if user_query:
-        chat_prompt = f"You are a helpful heart nutrition expert. Question:\n\n{user_query}"
-        with st.spinner("💡 Thinking..."):
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    user_input = st.text_input("❓ Ask a diet-related question")
+
+    if user_input:
+        with st.spinner("🤖 Dietitian is typing..."):
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are a professional heart-health dietitian."},
-                    {"role": "user", "content": chat_prompt}
+                    *st.session_state.chat_history,
+                    {"role": "user", "content": user_input}
                 ],
-                max_tokens=400,
-                temperature=0.7  # fixed typo
+                max_tokens=200,
+                temperature=0.7
             )
-        answer = response.choices[0].message.content
-        st.markdown("✅ **Expert Answer:**")
-        st.markdown(f"<div style='background-color:#f7f9fa;padding:15px;border-radius:10px;border:1px solid #ddd'>{answer.replace(chr(10),'<br>')}</div>", unsafe_allow_html=True)
+            reply = response.choices[0].message.content
+            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            st.session_state.chat_history.append({"role": "assistant", "content": reply})
 
+    if st.session_state.chat_history:
+        st.markdown("---")
+        st.markdown("🧠 **Chat History**")
+        for msg in st.session_state.chat_history[::-1]:  # show latest first
+            role = "👤" if msg["role"] == "user" else "🩺"
+            st.markdown(f"{role} {msg['content']}")
