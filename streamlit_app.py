@@ -1,18 +1,16 @@
 import os
+import io
+import unicodedata
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
-from PIL import Image
 from fpdf import FPDF
-import io
-import streamlit.components.v1 as components
-
-
 from src.mlproject.predict_pipelines import PredictPipeline
 
-# Load OpenAI key
+# Load environment variables
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 st.set_page_config(page_title="🫀 Heart Risk & Diet AI", layout="wide")
 st.title("🫀 Heart Disease Predictor & Diet Assistant")
@@ -54,7 +52,6 @@ with tab1:
     predict_btn = st.button("🚑 Predict Risk")
     diet_btn = st.button("🥗 Generate Diet Plan")
 
-    # Shared model input dictionary
     model_input = {
         "age": age,
         "sex": 1 if sex == "Male" else 0,
@@ -72,23 +69,23 @@ with tab1:
     }
 
     if predict_btn:
-     pipeline = PredictPipeline()
-     prediction = pipeline.predict(model_input)
-     st.session_state["prediction"] = prediction
-     st.session_state["predicted"] = True  # ✅ Add a flag
+        pipeline = PredictPipeline()
+        prediction = pipeline.predict(model_input)
+        st.session_state["prediction"] = prediction
+        st.session_state["predicted"] = True
 
-     st.markdown("---")
-     if prediction == 1:
-        st.error("⚠️ **High Risk of Heart Disease Detected!** Consult a cardiologist.")
-     else:
-        st.success("✅ **Low Risk of Heart Disease. Keep maintaining your health!**")
+        st.markdown("---")
+        if prediction == 1:
+            st.error("⚠️ **High Risk of Heart Disease Detected!** Consult a cardiologist.")
+        else:
+            st.success("✅ **Low Risk of Heart Disease. Keep maintaining your health!**")
 
     if diet_btn:
-     if "predicted" not in st.session_state:
-        st.warning("⚠️ Please run the prediction first.")
-     else:
-        prediction = st.session_state["prediction"]
-        prompt = f"""
+        if "predicted" not in st.session_state:
+            st.warning("⚠️ Please run the prediction first.")
+        else:
+            prediction = st.session_state["prediction"]
+            prompt = f"""
 🧑‍⚕️ I’m a {age}-year-old {"male" if model_input['sex'] else "female"} with:
 💉 BP: {trestbps} | 🧪 Cholesterol: {chol} | 🍬 Fasting Sugar: {"Yes" if model_input['fbs'] else "No"}
 ❤️ Max HR: {thalach} | 📉 ST Depression: {oldpeak} | 🧬 Thalassemia: {thal}
@@ -100,60 +97,51 @@ with tab1:
 - 🍳 Breakfast, 🍛 Lunch, 🍲 Dinner recipes
 🎯 Tailor it to my condition & keep it practical.
 """
+            with st.spinner("🍎 Generating personalized diet plan..."):
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are a certified medical dietitian."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=1000
+                )
+                diet_text = response.choices[0].message.content
 
-
-        with st.spinner("🍎 Generating personalized diet plan..."):
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a certified medical dietitian."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=40  # increased to ensure detailed output
+            st.subheader("🥗 Recommended Diet Plan")
+            formatted_diet = diet_text.replace("\n", "<br>")
+            st.markdown(
+                f"""
+                <div style='background-color:#068f88;padding:15px;border-radius:10px;border:1px solid #ddd'>
+                {formatted_diet}
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            diet_text = response.choices[0].message.content
 
-        st.subheader("🥗 Recommended Diet Plan")
-        formatted_diet = diet_text.replace("\n", "<br>")
-        st.markdown(
-            f"""
-            <div style='background-color:#f7f9fa;padding:15px;border-radius:10px;border:1px solid #ddd'>
-            {formatted_diet}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            def clean_text(text):
+                return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
 
-        # Clean for PDF output
-        import unicodedata
+            cleaned_diet_text = clean_text(diet_text)
 
-        def clean_text(text):
-            return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_auto_page_break(auto=True, margin=15)
+            pdf.set_font("Arial", size=12)
+            for line in cleaned_diet_text.split('\n'):
+                pdf.multi_cell(0, 10, line)
+            pdf_output = pdf.output(dest='S').encode('latin1')
+            pdf_buffer = io.BytesIO(pdf_output)
+            pdf_buffer.seek(0)
 
-        cleaned_diet_text = clean_text(diet_text)
-
-        # Generate and download PDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.set_font("Arial", size=12)
-
-        for line in cleaned_diet_text.split('\n'):
-            pdf.multi_cell(0, 10, line)
-
-        pdf_output = pdf.output(dest='S').encode('latin1')
-        pdf_buffer = io.BytesIO(pdf_output)
-        pdf_buffer.seek(0)
-
-        st.download_button(
-            label="📥 Download Diet Plan as PDF",
-            data=pdf_buffer,
-            file_name="heart_diet_plan.pdf",
-            mime="application/pdf"
-        )
+            st.download_button(
+                label="📥 Download Diet Plan as PDF",
+                data=pdf_buffer,
+                file_name="heart_diet_plan.pdf",
+                mime="application/pdf"
+            )
 
 
-# ------------------------- TAB 2 -------------------------
 # ------------------------- SIDEBAR CHATBOT -------------------------
 with st.sidebar:
     st.header("💬 Diet Chatbot")
@@ -168,12 +156,11 @@ with st.sidebar:
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "you are a diet consultant bot name (healthy(B)) made by vivek. you have to alwase tell about your self "},
+                    {"role": "system", "content": "You are a diet consultant bot named Healthy(B) made by Vivek. Always introduce yourself."},
                     *st.session_state.chat_history,
                     {"role": "user", "content": user_input}
                 ],
-                max_tokens=200,
-                temperature=0.7
+                max_tokens=300
             )
             reply = response.choices[0].message.content
             st.session_state.chat_history.append({"role": "user", "content": user_input})
@@ -182,6 +169,6 @@ with st.sidebar:
     if st.session_state.chat_history:
         st.markdown("---")
         st.markdown("🧠 **Chat History**")
-        for msg in st.session_state.chat_history[::-1]:  # show latest first
-            role = "👤" if msg["role"] == "user" else "🩺"
-            st.markdown(f"{role} {msg['content']}")
+        for msg in reversed(st.session_state.chat_history):  # show latest last for chat flow
+            role_emoji = "👤" if msg["role"] == "user" else "🩺"
+            st.markdown(f"{role_emoji} {msg['content']}")
