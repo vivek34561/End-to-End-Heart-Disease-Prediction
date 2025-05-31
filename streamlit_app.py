@@ -15,6 +15,16 @@ client = OpenAI(api_key=api_key)
 st.set_page_config(page_title="🫀 Heart Risk & Diet AI", layout="wide")
 st.title("🫀 Heart Disease Predictor & Diet Assistant")
 
+# Initialize session state keys
+if "predicted" not in st.session_state:
+    st.session_state.predicted = False
+if "prediction" not in st.session_state:
+    st.session_state.prediction = None
+if "diet_plan_text" not in st.session_state:
+    st.session_state.diet_plan_text = ""
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 tab1 = st.container()
 
 # ------------------------- TAB 1 -------------------------
@@ -74,17 +84,17 @@ with tab1:
         st.session_state["prediction"] = prediction
         st.session_state["predicted"] = True
 
+    if st.session_state["predicted"]:
         st.markdown("---")
-        if prediction == 1:
+        if st.session_state["prediction"] == 1:
             st.error("⚠️ **High Risk of Heart Disease Detected!** Consult a cardiologist.")
         else:
             st.success("✅ **Low Risk of Heart Disease. Keep maintaining your health!**")
 
     if diet_btn:
-        if "predicted" not in st.session_state:
+        if not st.session_state["predicted"]:
             st.warning("⚠️ Please run the prediction first.")
         else:
-            prediction = st.session_state["prediction"]
             prompt = f"""
 🧑‍⚕️ I’m a {age}-year-old {"male" if model_input['sex'] else "female"} with:
 💉 BP: {trestbps} | 🧪 Cholesterol: {chol} | 🍬 Fasting Sugar: {"Yes" if model_input['fbs'] else "No"}
@@ -106,61 +116,67 @@ with tab1:
                     ],
                     max_tokens=1000
                 )
-                diet_text = response.choices[0].message.content
+                st.session_state["diet_plan_text"] = response.choices[0].message.content
 
-            st.subheader("🥗 Recommended Diet Plan")
-            formatted_diet = diet_text.replace("\n", "<br>")
-            st.markdown(
-                f"""
-                <div style='background-color:#068f88;padding:15px;border-radius:10px;border:1px solid #ddd'>
-                {formatted_diet}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    if st.session_state["diet_plan_text"]:
+        st.subheader("🥗 Recommended Diet Plan")
+        formatted_diet = st.session_state["diet_plan_text"].replace("\n", "<br>")
+        st.markdown(
+            f"""
+            <div style='background-color:#068f88;padding:15px;border-radius:10px;border:1px solid #ddd'>
+            {formatted_diet}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-            def clean_text(text):
-                return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+        def clean_text(text):
+            return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
 
-            cleaned_diet_text = clean_text(diet_text)
+        cleaned_diet_text = clean_text(st.session_state["diet_plan_text"])
 
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_auto_page_break(auto=True, margin=15)
-            pdf.set_font("Arial", size=12)
-            for line in cleaned_diet_text.split('\n'):
-                pdf.multi_cell(0, 10, line)
-            pdf_output = pdf.output(dest='S').encode('latin1')
-            pdf_buffer = io.BytesIO(pdf_output)
-            pdf_buffer.seek(0)
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", size=12)
+        for line in cleaned_diet_text.split('\n'):
+            pdf.multi_cell(0, 10, line)
+        pdf_output = pdf.output(dest='S').encode('latin1')
+        pdf_buffer = io.BytesIO(pdf_output)
+        pdf_buffer.seek(0)
 
-            st.download_button(
-                label="📥 Download Diet Plan as PDF",
-                data=pdf_buffer,
-                file_name="heart_diet_plan.pdf",
-                mime="application/pdf"
-            )
-
+        st.download_button(
+            label="📥 Download Diet Plan as PDF",
+            data=pdf_buffer,
+            file_name="heart_diet_plan.pdf",
+            mime="application/pdf"
+        )
 
 # ------------------------- SIDEBAR CHATBOT -------------------------
 with st.sidebar:
     st.header("💬 Diet Chatbot")
 
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-
     user_input = st.text_input("❓ Ask a diet-related question")
 
     if user_input:
         with st.spinner("🤖 Dietitian is typing..."):
+            full_chat = [
+                {"role": "system", "content": "You are a diet consultant bot named Healthy(B) made by Vivek. Always introduce yourself."},
+            ]
+            # Include the user's diet plan if available
+            if st.session_state["diet_plan_text"]:
+                full_chat.append({
+                    "role": "user",
+                    "content": f"This is my diet plan:\n{st.session_state['diet_plan_text']}"
+                })
+            # Add chat history
+            full_chat.extend(st.session_state.chat_history)
+            full_chat.append({"role": "user", "content": user_input})
+
             response = client.chat.completions.create(
                 model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are a diet consultant bot named Healthy(B) made by Vivek. Always introduce yourself."},
-                    *st.session_state.chat_history,
-                    {"role": "user", "content": user_input}
-                ],
-                max_tokens=300
+                messages=full_chat,
+                max_tokens=200
             )
             reply = response.choices[0].message.content
             st.session_state.chat_history.append({"role": "user", "content": user_input})
@@ -169,6 +185,6 @@ with st.sidebar:
     if st.session_state.chat_history:
         st.markdown("---")
         st.markdown("🧠 **Chat History**")
-        for msg in reversed(st.session_state.chat_history):  # show latest last for chat flow
+        for msg in reversed(st.session_state.chat_history):
             role_emoji = "👤" if msg["role"] == "user" else "🩺"
             st.markdown(f"{role_emoji} {msg['content']}")
