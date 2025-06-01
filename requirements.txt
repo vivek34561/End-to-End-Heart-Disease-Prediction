@@ -18,3 +18,4 @@ python-dotenv
 xhtml2pdf
 Pillow
 fpdf
+pytest
