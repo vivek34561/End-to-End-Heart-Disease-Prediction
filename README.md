@@ -25,12 +25,14 @@ An AI-powered Streamlit web application that predicts the risk of heart disease 
 
 ### 📸 Screenshots
 
-| Heart Disease Predictor | Personalized Diet Plan | Diet Assistant Bot |
-|-------------------------|-------------------------|-------------------------|
+| Heart Disease Predictor | Personalized Diet Plan |
+|-------------------------|-------------------------|
 | ![Predictor](![Screenshot-2025-06-02-074154](https://github.com/user-attachments/assets/b70c4e38-0ab6-4368-a248-348351cab3db)
 ) | ![Diet Plan](![Screenshot-2025-06-02-074108](https://github.com/user-attachments/assets/eef71d7a-f9a0-411e-8cf4-84407374ebe1)
-) | ![Diet Chatbot](![Screenshot-2025-06-02-074303](https://github.com/user-attachments/assets/3d2d62d0-7ee2-4004-85d0-748feac111f6)
-) |
+) 
+
+| Diet Assistant Chatbot |
+![Diet Chatbot](![Screenshot-2025-06-02-074303](https://github.com/user-attachments/assets/3d2d62d0-7ee2-4004-85d0-748feac111f6)
 
 ---
 
