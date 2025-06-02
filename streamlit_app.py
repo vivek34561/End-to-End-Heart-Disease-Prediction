@@ -182,7 +182,7 @@ with st.sidebar:
     if user_input:
         with st.spinner("🤖 Dietitian is typing..."):
             full_chat = [
-                {"role": "system", "content": "You are a diet consultant bot named Healthy(Bee) made by Vivek. Always introduce yourself."},
+                {"role": "system", "content": "You are a diet consultant bot named Healthy(B) made by Vivek. Always introduce yourself."},
             ]
             if st.session_state["diet_plan_text"]:
                 full_chat.append({
