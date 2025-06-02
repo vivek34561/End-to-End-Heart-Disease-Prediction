@@ -13,6 +13,27 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 st.set_page_config(page_title="🫀 Heart Risk & Diet AI", layout="wide")
+
+# ------------------------- 🔐 Password Protection -------------------------
+def check_password():
+    def password_entered():
+        if st.session_state["password"] == os.getenv("APP_PASSWORD"):
+            st.session_state["authenticated"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["authenticated"] = False
+
+    if "authenticated" not in st.session_state:
+        st.text_input("🔐 Enter App Password", type="password", on_change=password_entered, key="password")
+        st.stop()
+    elif not st.session_state["authenticated"]:
+        st.text_input("🔐 Enter App Password", type="password", on_change=password_entered, key="password")
+        st.error("❌ Incorrect password. Try again.")
+        st.stop()
+
+check_password()
+# ------------------------- End Password Protection -------------------------
+
 st.title("🫀 Heart Disease Predictor & Diet Assistant")
 
 # Initialize session state keys
@@ -161,15 +182,13 @@ with st.sidebar:
     if user_input:
         with st.spinner("🤖 Dietitian is typing..."):
             full_chat = [
-                {"role": "system", "content": "You are a diet consultant bot named Healthy(B) made by Vivek. Always introduce yourself."},
+                {"role": "system", "content": "You are a diet consultant bot named Healthy(Bee) made by Vivek. Always introduce yourself."},
             ]
-            # Include the user's diet plan if available
             if st.session_state["diet_plan_text"]:
                 full_chat.append({
                     "role": "user",
                     "content": f"This is my diet plan:\n{st.session_state['diet_plan_text']}"
                 })
-            # Add chat history
             full_chat.extend(st.session_state.chat_history)
             full_chat.append({"role": "user", "content": user_input})
 
