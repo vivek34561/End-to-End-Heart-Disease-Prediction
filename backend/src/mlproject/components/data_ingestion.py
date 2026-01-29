@@ -32,7 +32,7 @@ class DataIngestionConfig:
     train_data_path:str = os.path.join('artifact' , 'train.csv')
     test_data_path:str = os.path.join('artifact' , 'test.csv')
     raw_data_path:str = os.path.join('artifact' , 'raw.csv')
-    raw_data_path_2:str = os.path.join('notebook\data' , 'raw.csv')
+    raw_data_path_2:str = os.path.join('notebook', 'data' , 'raw.csv')
 # this indicate the path where training and testing data store after spliting
 
 # DataIngestionConfig (A configuration class):
