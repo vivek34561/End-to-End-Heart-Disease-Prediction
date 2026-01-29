@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # ------------------------- Backend URL -------------------------
-API_URL = "https://heart-disease-prediction-ai-diet.onrender.com/"   # Change if deployed
+API_URL = "https://heart-disease-prediction-ai-diet-gdob.onrender.com/"   # Change if deployed
 
 st.set_page_config(page_title="🪀 Heart Risk & Diet AI", layout="wide")
 
